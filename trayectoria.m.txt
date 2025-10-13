@@ -1,0 +1,33 @@
+tf = 10;
+Xg = 2;
+
+alpha0 = 0;
+alpha1 = 0;
+alpha2 = 0;
+
+xf = 0;
+xdotf = 0;
+xddotf = 0;
+
+alpha6 = 0.0;
+
+A = [tf^3 tf^4 tf^5;
+    3*tf^2 4*tf^3 5*tf^4;
+    6*tf 12*tf^2 20*tf^3];
+
+b = [Xg;
+    0;
+    0];
+
+% b = [Xg - alpha6*tf^6;
+%     -6*alpha6*tf^5;
+%     -30*alpha6*tf^4];
+
+alpha = A\b
+alphas_aux=[0;0;0;alpha;alpha6]
+
+
+t = 0:0.001:10;
+
+%Xd_t = alpha0 + alpha1*t + alpha2*t^2 +alpha3*t^3 + alpha4*t^4 + alpha5*t^5 + alpha6*t^6;
+X = polyval([alphas_aux(7),alphas_aux(6),alphas_aux(5),alphas_aux(4),alphas_aux(3),alphas_aux(2),alphas_aux(1)], t)
