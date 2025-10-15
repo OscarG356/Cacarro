@@ -1,0 +1,5 @@
+../Core/Src/robot_kinematics.c:3:6:RobotKinematics_Init	1
+../Core/Src/robot_kinematics.c:47:6:RobotKinematics_Update	1
+../Core/Src/robot_kinematics.c:89:7:W_Control_Law	3
+../Core/Src/robot_kinematics.c:117:6:VL_Control_Law	2
+../Core/Src/robot_kinematics.c:144:6:Angular_Vel	1
