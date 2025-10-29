@@ -62,30 +62,16 @@ class OdometriaVisualizer:
             self.current_y = 0.0
             self.current_theta = 0.0
             
-            # Reiniciar límites dinámicos
-            self.x_min_ever = float('inf')
-            self.x_max_ever = float('-inf')
-            self.y_min_ever = float('inf')
-            self.y_max_ever = float('-inf')
-            self.limits_initialized = False
-            
             # Limpiar las líneas gráficas
             self.trajectory_line.set_data([], [])
-            self.current_pos.set_data([], [])
-            self.direction_arrow.set_data([], [])
+            self.robot_triangle.set_xy([(0, 0), (0, 0), (0, 0)])
             self.x_time_line.set_data([], [])
             self.y_time_line.set_data([], [])
             self.theta_time_line.set_data([], [])
             
-            # Reiniciar cono de visión
-            self.vision_cone.set_xy([(0, 0)])
-            
-            # Reiniciar ejes a vista inicial
-            self.ax1.set_xlim(-2, 2)
-            self.ax1.set_ylim(-2, 2)
-            
-            # Limpiar información de límites
-            self.limits_info.set_text("")
+            # Mantener ejes fijos
+            self.ax1.set_xlim(-1, 5)
+            self.ax1.set_ylim(-1, 7)
             
             # Redibujar
             self.fig.canvas.draw()
@@ -216,48 +202,44 @@ class OdometriaVisualizer:
                 print(f"Error inesperado: {e}")
                 break
     
-    def calculate_vision_cone(self, x, y, theta, cone_length=1.0, cone_angle=0.5):
+    def calculate_robot_triangle(self, x, y, theta, size=0.5):
         """
-        Calcula los puntos del cono de visión
+        Calcula los puntos del triángulo que representa el robot
         
         Args:
             x (float): Posición X del robot
             y (float): Posición Y del robot  
             theta (float): Orientación del robot en radianes
-            cone_length (float): Longitud del cono
-            cone_angle (float): Ángulo de apertura del cono (radianes)
+            size (float): Tamaño del triángulo
             
         Returns:
-            numpy.array: Puntos del cono como array [[x1,y1], [x2,y2], ...]
+            numpy.array: Puntos del triángulo como array [[x1,y1], [x2,y2], [x3,y3]]
         """
-        # Punto base del robot
-        base_x, base_y = x, y
+        # Punto frontal del triángulo (apunta en dirección theta)
+        front_x = x + size * np.cos(theta)
+        front_y = y + size * np.sin(theta)
         
-        # Calcular los puntos del cono
-        # Dirección principal
-        tip_x = base_x + cone_length * np.cos(theta)
-        tip_y = base_y + cone_length * np.sin(theta)
+        # Puntos traseros del triángulo (base)
+        # Crear un triángulo equilátero que apunte hacia theta
+        # Izquierdo (120° hacia la izquierda desde la dirección frontal)
+        left_angle = theta + np.pi - np.pi/3  # 180° - 60° = 120° desde theta
+        left_x = x + size * 0.7 * np.cos(left_angle)
+        left_y = y + size * 0.7 * np.sin(left_angle)
         
-        # Bordes del cono
-        left_angle = theta + cone_angle
-        right_angle = theta - cone_angle
+        # Derecho (120° hacia la derecha desde la dirección frontal)  
+        right_angle = theta + np.pi + np.pi/3  # 180° + 60° = 240° desde theta
+        right_x = x + size * 0.7 * np.cos(right_angle)
+        right_y = y + size * 0.7 * np.sin(right_angle)
         
-        left_x = base_x + cone_length * np.cos(left_angle)
-        left_y = base_y + cone_length * np.sin(left_angle)
-        
-        right_x = base_x + cone_length * np.cos(right_angle)
-        right_y = base_y + cone_length * np.sin(right_angle)
-        
-        # Puntos del polígono (base -> izquierda -> punta -> derecha -> base)
-        cone_points = np.array([
-            [base_x, base_y],
-            [left_x, left_y],
-            [tip_x, tip_y],
+        # Puntos del triángulo
+        triangle_points = np.array([
+            [front_x, front_y],
+            [left_x, left_y], 
             [right_x, right_y],
-            [base_x, base_y]
+            [front_x, front_y]  # Cerrar el triángulo
         ])
         
-        return cone_points
+        return triangle_points
     
     def setup_plots(self):
         """Configura las gráficas"""
@@ -265,32 +247,23 @@ class OdometriaVisualizer:
         self.fig, ((self.ax1, self.ax2), (self.ax3, self.ax4)) = plt.subplots(2, 2, figsize=(12, 8))
         self.fig.suptitle('Visualización de Odometría en Tiempo Real', fontsize=16)
         
-        # Gráfica 1: Trayectoria X-Y con ejes dinámicos
-        self.ax1.set_title('Trayectoria con Ejes Dinámicos (X vs Y)', fontweight='bold')
+        # Gráfica 1: Trayectoria X-Y con ejes fijos
+        self.ax1.set_title('Trayectoria (X vs Y) - Ejes Fijos', fontweight='bold')
         self.ax1.set_xlabel('X (m)')
         self.ax1.set_ylabel('Y (m)')
         self.ax1.grid(True, alpha=0.3)
-        self.ax1.axis('equal')
         
-        # Quitar números de los ejes dinámicos para vista más limpia
-        self.ax1.set_xticklabels([])
-        self.ax1.set_yticklabels([])
+        # Configurar ejes fijos
+        self.ax1.set_xlim(-1,5)
+        self.ax1.set_ylim(-1,7)
         self.trajectory_line, = self.ax1.plot([], [], 'navy', linewidth=3, alpha=0.8, label='Trayectoria Completa')
-        self.current_pos, = self.ax1.plot([], [], 'ro', markersize=12, markeredgecolor='black', markeredgewidth=2, label='Robot Actual')
         
-        # Cono de visión para mostrar orientación (mejorado)
+        # Robot como triángulo (como en los mapas)
         from matplotlib.patches import Polygon
-        self.vision_cone = Polygon([(0, 0)], closed=True, alpha=0.5, facecolor='orange', 
-                                  edgecolor='red', linewidth=2, label='Campo de Visión')
-        self.ax1.add_patch(self.vision_cone)
-        
-        # Vector de dirección (flecha mejorada)
-        self.direction_arrow, = self.ax1.plot([], [], 'red', linewidth=4, alpha=0.9, label='Dirección')
-        
-        # Información de límites dinámicos
-        self.limits_info = self.ax1.text(0.02, 0.02, '', transform=self.ax1.transAxes, fontsize=9,
-                                        verticalalignment='bottom', 
-                                        bbox=dict(boxstyle='round,pad=0.3', facecolor='lightblue', alpha=0.8))
+        self.robot_triangle = Polygon([(0, 0), (0, 0), (0, 0)], closed=True, 
+                                     facecolor='red', edgecolor='black', linewidth=2, 
+                                     alpha=0.8, label='Robot Actual')
+        self.ax1.add_patch(self.robot_triangle)
         
         self.ax1.legend()
         
@@ -363,88 +336,18 @@ class OdometriaVisualizer:
                 # Actualizar trayectoria X-Y
                 self.trajectory_line.set_data(list(self.x_data), list(self.y_data))
                 if len(self.x_data) > 0:
-                    self.current_pos.set_data([self.current_x], [self.current_y])
-                    
-                    # Calcular el cono de visión
-                    cone_points = self.calculate_vision_cone(
+                    # Calcular triángulo del robot
+                    triangle_points = self.calculate_robot_triangle(
                         self.current_x, self.current_y, self.current_theta,
-                        cone_length=2.0,  # Longitud del cono en metros
-                        cone_angle=0.4    # Ángulo de apertura (radianes)
+                        size=0.5  # Tamaño del triángulo en metros
                     )
+                    self.robot_triangle.set_xy(triangle_points)
                     
-                    # Actualizar el cono de visión
-                    self.vision_cone.set_xy(cone_points)
-                    
-                    # Vector de dirección (flecha mejorada)
-                    arrow_length = 2.5
-                    arrow_end_x = self.current_x + arrow_length * np.cos(self.current_theta)
-                    arrow_end_y = self.current_y + arrow_length * np.sin(self.current_theta)
-                    self.direction_arrow.set_data([self.current_x, arrow_end_x], 
-                                                [self.current_y, arrow_end_y])
-                    
-                    # Actualizar información de límites con datos reales actuales
-                    if len(self.x_data) > 0:
-                        actual_x_min = min(self.x_data)
-                        actual_x_max = max(self.x_data)
-                        actual_y_min = min(self.y_data)
-                        actual_y_max = max(self.y_data)
-                        x_range = actual_x_max - actual_x_min
-                        y_range = actual_y_max - actual_y_min
-                        
-                        limits_text = f"Posición actual: ({self.current_x:.2f}, {self.current_y:.2f})\n"
-                        limits_text += f"Orientación: {self.current_theta:.2f} rad ({np.degrees(self.current_theta):.0f}°)\n"
-                        limits_text += f"Área explorada: {x_range:.1f}m × {y_range:.1f}m\n"
-                        limits_text += f"X: [{actual_x_min:.1f}, {actual_x_max:.1f}] | Y: [{actual_y_min:.1f}, {actual_y_max:.1f}]\n"
-                        limits_text += f"Total puntos: {len(self.x_data)}"
-                        self.limits_info.set_text(limits_text)
+
                 
-                # *** CORRECCIÓN DE EJES DINÁMICOS - CALCULA LÍMITES REALES DE LOS DATOS ***
-                if len(self.x_data) > 0:
-                    # Calcular límites reales directamente de TODOS los datos actuales
-                    actual_x_min = min(self.x_data)
-                    actual_x_max = max(self.x_data)  
-                    actual_y_min = min(self.y_data)
-                    actual_y_max = max(self.y_data)
-                    
-                    # Calcular rangos con margen proporcional
-                    x_range = max(actual_x_max - actual_x_min, 1.0)  # Mínimo 1 metro
-                    y_range = max(actual_y_max - actual_y_min, 1.0)  # Mínimo 1 metro
-                    
-                    # Margen: 20% del rango + mínimo 1 metro para buena visualización
-                    margin_x = max(x_range * 0.2, 1.0)
-                    margin_y = max(y_range * 0.2, 1.0)
-                    
-                    # Límites que GARANTIZAN mostrar todos los datos reales
-                    new_x_min = actual_x_min - margin_x
-                    new_x_max = actual_x_max + margin_x
-                    new_y_min = actual_y_min - margin_y
-                    new_y_max = actual_y_max + margin_y
-                    
-                    # Obtener límites actuales del gráfico
-                    current_xlim = self.ax1.get_xlim()
-                    current_ylim = self.ax1.get_ylim()
-                    
-                    # Solo expandir si es necesario (nunca contraer)
-                    final_x_min = min(current_xlim[0], new_x_min)
-                    final_x_max = max(current_xlim[1], new_x_max)
-                    final_y_min = min(current_ylim[0], new_y_min)
-                    final_y_max = max(current_ylim[1], new_y_max)
-                    
-                    # DEBUG: Mostrar cuando se expanden los ejes
-                    if (actual_x_min < current_xlim[0] or actual_x_max > current_xlim[1] or 
-                        actual_y_min < current_ylim[0] or actual_y_max > current_ylim[1]):
-                        
-                        print(f"🔄 Expandiendo ejes para mostrar datos:")
-                        print(f"   Datos reales: X[{actual_x_min:.1f}, {actual_x_max:.1f}] Y[{actual_y_min:.1f}, {actual_y_max:.1f}]")
-                        print(f"   Ejes nuevos: X[{final_x_min:.1f}, {final_x_max:.1f}] Y[{final_y_min:.1f}, {final_y_max:.1f}]")
-                    
-                    # Aplicar límites corregidos que muestran TODOS los datos
-                    self.ax1.set_xlim(final_x_min, final_x_max)
-                    self.ax1.set_ylim(final_y_min, final_y_max)
-                else:
-                    # Vista inicial por defecto
-                    self.ax1.set_xlim(-2, 2)
-                    self.ax1.set_ylim(-2, 2)
+                # Mantener ejes fijos siempre
+                self.ax1.set_xlim(-1,5)
+                self.ax1.set_ylim(-1,7)
                 
                 # Actualizar gráficas temporales
                 if len(relative_time) > 0:
@@ -463,8 +366,8 @@ class OdometriaVisualizer:
                             ax.set_xlim(time_min, time_max + 1)
                             ax.set_ylim(data_min - data_margin, data_max + data_margin)
         
-        return (self.trajectory_line, self.current_pos, self.vision_cone, self.direction_arrow,
-                self.limits_info, self.x_time_line, self.y_time_line, self.theta_time_line)
+        return (self.trajectory_line, self.robot_triangle,
+                self.x_time_line, self.y_time_line, self.theta_time_line)
     
     def start_visualization(self):
         """Inicia la visualización en tiempo real"""
@@ -510,7 +413,7 @@ class OdometriaVisualizer:
 
 def main():
     """Función principal"""
-    print("=== VISUALIZADOR DE ODOMETRÍA CON EJES DINÁMICOS ===")
+    print("=== VISUALIZADOR DE ODOMETRÍA CON EJES FIJOS ===")
     print("CARACTERÍSTICAS MEJORADAS:")
     print("✓ Lee datos reales del puerto COM6") 
     print("✓ Ejes que se expanden automáticamente")
