@@ -91,9 +91,11 @@ float W_Control_Law(RobotKinematics *robot, float Xd, float Yd){
 	float phi_d = atan2((Yd-robot->y),(Xd-robot->x));
 	float e_aux = phi_d - robot->theta;
 	float e_k = atan2(sin(e_aux), cos(e_aux));
-	float min_e = 0.15;
+//	float min_e = 0.125;
+	float min_e = 0.25;
 	//float Kp = 0.499, Ki = 0.001, T = 0.001;
-	float Kp = 0.3, Ki = 0.001, T = 0.001;
+//	float Kp = 0.31, Ki = 0.005, T = 0.001;
+	float Kp = 0.31, Ki = 0.005, T = 0.001;
 
 	if(sqrt(pow(e_k,2)) <= min_e || robot->Vc == 0 ){
 		robot->Wc = 0;
@@ -117,10 +119,11 @@ float W_Control_Law(RobotKinematics *robot, float Xd, float Yd){
 void VL_Control_Law(RobotKinematics *robot, float Xd, float Yd){
 
 	double d = sqrt(pow((Yd-robot->y), 2) + pow((Xd-robot->x),2));
-	float min_e = 0.01;
+	float min_e = 0.05;
 	float alpha_p = 0.1;
 	//float Kp = 0.065, Ki = 0.0028, T = 0.001;
-	float Kp = 0.065, Ki = 0.0028, T = 0.001;
+//	float Kp = 0.075, Ki = 0.0028, T = 0.001;
+	float Kp = 0.08, Ki = 0.0028, T = 0.001;
 	//robot->Vc = alpha_p*d;
 
 	if(d <= min_e ){

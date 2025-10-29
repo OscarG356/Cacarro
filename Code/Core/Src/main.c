@@ -78,14 +78,36 @@ float coory[4] = {0.0f,    2.0f,    2.0f,   0.0f};
 float Xd = 0.0f;
 float Yd = 0.0f;
 
-float alphas[4][7] = {{0, 0, 0, 1.11111, -0.555556, 0.0740741, 0},
-		{3, 0, 0, 0.0, 0.0, 0.0, 0},
-		{3, 0, 0, -1.11111, 0.555556, -0.0740741, 0},
-		{0, 0, 0, 0.0, 0.0, 0.0, 0}};
-float betas[4][7] = {{0, 0, 0, 0.0f, 0.0f, 0.0f, 0},
-		{0, 0, 0, 1.11111, -0.555556, 0.0740741, 0},
-		{3, 0, 0, 0.0, 0.0, 0.0, 0},
-		{3, 0, 0, -1.11111, 0.555556, -0.0740741, 0}};
+//	EVASIÓN DE OBSTACULOS(4*6)
+
+float alphas[8][9] = {{0, 0, 0, 1.400864734998522, -0.816273551248890, 0.168912137812222, -0.012122886484352, 0.0, 0.0},
+		{4, 0, 0, -0.0578170886460264, 0.0433628164845197, -0.01084070412113, 0.0009033920100942, 0.0 , 0.0},
+		{4, 0, 0, -1.400864734998522, 0.816273551248890, -0.168912137812222, 0.012122886484352, 0.0, 0.0},
+		{0, 0, 0, 0.0578170886460264, -0.0433628164845197, 0.01084070412113, -0.0009033920100942, 0.0, 0.0},
+		{4, 0, 0, 0.333581735217150, -0.248149041130290, 0.055389808226058, -0.003948653881737, 0.0, 0.0},
+		{2, 0, 0, -0.098164604945153,  0.010898762967092, 0.003580247406582, -0.000494683160439, 0.0, 0.0},
+		{0, 0, 0,  -0.001789077758982,  0.001073446655389, -0.000214689331078, 0.000014312622072, 0.0, 0.0},
+		{0, 0, 0, 0.091066348578766, -0.054639809147260, 0.010927961829452, -0.000728530788630, 0.0, 0.0}};
+
+float betas[8][9] = {{0, 0, 0, 0.059645443779439, -0.044734082834579,  0.011183520708645, -0.000931960059054, 0.0, 0.0},
+		{0, 0, 0,0.057152225192306, 0.30869833110577, -0.129908957776442, 0.01375543398137, 0.0 , 0.0},
+		{6, 0, 0, -0.059645443779439, 0.044734082834579,  -0.011183520708645, 0.000931960059054,0.0, 0.0},
+		{6, 0, 0, -0.057152225192306, -0.30869833110577, 0.129908957776442, -0.01375543398137, 0.0, 0.0},
+		{6, 0, 0, -0.010782280545491, 0.006469368327295, -0.001293873665459, 0.000086258244364, 0.0, 0.0},
+		{6, 0, 0, -0.002813650178160, 0.001688190106896, -0.000337638021379, 0.000022509201425, 0.0, 0.0},
+		{6, 0, 0, -0.137896451670704,  0.010737871002422, 0.006492425799516, -0.000816828386634, 0.0, 0.0},
+		{3, 0, 0, 0.296007012321636,  -0.249604207392982, 0.058560841478597, -0.004288056098573, 0.0, 0.0}};
+
+
+// TRAYECTORIA CUADRADA
+//float alphas[4][9] = {{0, 0, 0, 0.226660903902412, -0.039996542341447, -0.003520691531711, 0.000746712768781, 0.0 , 0.0},
+//		{4, 0, 0, 0.0, 0.0, 0.0, 0, 0.0 , 0.0},
+//		{4, 0, 0, -0.226660903902412, 0.039996542341447, 0.003520691531711, -0.000746712768781, 0.0 , 0.0},
+//		{0, 0, 0, 0.0, 0.0, 0.0, 0, 0.0 , 0.0}};
+//float betas[4][9] = {{0, 0, 0, 0.0f, 0.0f, 0.0f, 0, 0.0 , 0.0},
+//		{0, 0, 0, 0.292247388896690, -0.031348433338014, -0.011010313332397, 0.001502020888826, 0.0 , 0.0},
+//		{6, 0, 0, 0.0, 0.0, 0.0, 0, 0.0 , 0.0},
+//		{6, 0, 0, -0.292247388896690, 0.031348433338014, 0.011010313332397, -0.001502020888826, 0.0 , 0.0}};
 
 float AR[4][4] = {
     {0.5116f,    0.0070f,    0.0000f,   -0.0002f},
@@ -129,7 +151,10 @@ float phi_d = 0.0f;
 
 float T_esp = 0;
 float t = 0;
+int count = 1;
 int coor = 0;
+int band = 1;
+int band_giro = 0;
 
 volatile uint8_t uart3_busy = 0;     // 0 = libre, 1 = transmitiendo
 char telem_buf[128];                 // buffer de salida
@@ -221,41 +246,52 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
+	t = 0;
 	while (1)
 	{
 
 		while(Sampling)
 		{
 			Sampling = 0;
-			if(t<=3){
-			Xd = alphas[coor][0] + alphas[coor][1]*t + alphas[coor][2]*powf(t,2) + alphas[coor][3]*powf(t,3) + alphas[coor][4]*powf(t,4) + alphas[coor][5]*powf(t,5);
-			Yd = betas[coor][0] + betas[coor][1]*t + betas[coor][2]*powf(t,2) + betas[coor][3]*powf(t,3) + betas[coor][4]*powf(t,4) + betas[coor][5]*powf(t,5);
+
+//			if(t<=20){
+//				Xd = alphas[0][0] + alphas[0][1]*t + alphas[0][2]*powf(t,2) + alphas[0][3]*powf(t,3) + alphas[0][4]*powf(t,4) + alphas[0][5]*powf(t,5);
+//				Yd = betas[0][0] + betas[0][1]*t + betas[0][2]*powf(t,2) + betas[0][3]*powf(t,3) + betas[0][4]*powf(t,4) + betas[0][5]*powf(t,5);
+//				band = 1;
+//			}
+			// GIRO Y CUADRADO
+			if(band_giro){
+				if(t<=2){
+					Xd = 1 * (1 - cos((2*3.1416/8) * t));
+					Yd = 1 * sin((2*3.1416/8) * t);
+					Xd = alphas[(coor+1)%4][0] + cos(t);
+					Yd = betas[(coor+1)%4][0] + sin(t);
+				}
 			}
-//			if(T_esp >= ESPERA)
-//			{
-//				Xd = coorx[coor];
-//				Yd = coory[coor];
-//				T_esp = 0;
-//			switch (coor) {
-//				case 0:
-//
-//					break;
-//				case 1:
-//					coor = 2;
-//					break;
-//				case 2:
-//					coor = 3;
-//					break;
-//				case 3:
-//					coor = 0;
-//					break;
-//				default:
-//					coor = 0;
-//					break;
+			else{
+				if(t<=4){
+					Xd = alphas[coor][0] + alphas[coor][1]*t + alphas[coor][2]*powf(t,2) + alphas[coor][3]*powf(t,3) + alphas[coor][4]*powf(t,4) + alphas[coor][5]*powf(t,5) + alphas[coor][6]*powf(t,6) + alphas[coor][7]*powf(t,7) + alphas[coor][8]*powf(t,8);
+					Yd = betas[coor][0] + betas[coor][1]*t + betas[coor][2]*powf(t,2) + betas[coor][3]*powf(t,3) + betas[coor][4]*powf(t,4) + betas[coor][5]*powf(t,5) + betas[coor][6]*powf(t,6) + betas[coor][7]*powf(t,7) + betas[coor][8]*powf(t,8);
+					band = 1;
+
+				}
+			}
+
+
+//			if(t<=8){
+//				Xd = alphas[coor][0] + alphas[coor][1]*t + alphas[coor][2]*powf(t,2) + alphas[coor][3]*powf(t,3) + alphas[coor][4]*powf(t,4) + alphas[coor][5]*powf(t,5) + alphas[coor][6]*powf(t,6) + alphas[coor][7]*powf(t,7);
+//				Yd = betas[coor][0] + betas[coor][1]*t + betas[coor][2]*powf(t,2) + betas[coor][3]*powf(t,3) + betas[coor][4]*powf(t,4) + betas[coor][5]*powf(t,5) + betas[coor][6]*powf(t,6) + betas[coor][7]*powf(t,7);
+//				band = 1;
 //			}
-//
+//			else{
+//				if(band){
+//					alphas[count][0] = cacarro.x;
+//					bethas[count][0] = cacarro.y;
+//					count += 1;
+//					band = 0;
+//				}
 //			}
+
 
 			//IZQUIERDO
 			Aspeed = (Aangle - Apast_angle)/0.001;
@@ -266,10 +302,7 @@ int main(void)
 			Bspeed = (Bangle - Bpast_angle)/0.001;
 			Bpast_angle = Bangle;
 			By_k = Bangle;
-//			u_k = 100*r;
-//			control(u_k);
-			//Sería algo así? Lo que pasa es que está en velocidad angular de cada llanta, no en PWM
-			//Se requiere condición de parada? o desde la ley de control la ganacia k será igual a 0?
+
 			RobotKinematics_Update(&cacarro, Aangle, Bangle, 0.001);
 
 			phi_d = W_Control_Law(&cacarro, Xd, Yd);
@@ -278,8 +311,6 @@ int main(void)
 
 			r = cacarro.W_L_d;
 			Br = cacarro.W_R_d;
-
-			//Dónde setear la velocidad?
 
 			//MOTOR A : IZQUIERDO
 			x1_k_1 = AR[0][0]*x1_k + AR[0][1]*x2_k + AR[0][2]*x3_k + AR[0][3]*x4_k + BR[0][0]*r + BR[0][1]*y_k;
@@ -294,7 +325,7 @@ int main(void)
 			x3_k = x3_k_1;
 			x4_k = x4_k_1;
 
-			//motor B derecho
+			//MOTOR B : DERECHO
 
 			Bx1_k_1 = AL[0][0]*Bx1_k + AL[0][1]*Bx2_k + AL[0][2]*Bx3_k + AL[0][3]*Bx4_k + BL[0][0]*Br + BL[0][1]*By_k;
 			Bx2_k_1 = AL[1][0]*Bx1_k + AL[1][1]*Bx2_k + AL[1][2]*Bx3_k + AL[1][3]*Bx4_k + BL[1][0]*Br + BL[1][1]*By_k;
@@ -308,16 +339,6 @@ int main(void)
 			Bx3_k = Bx3_k_1;
 			Bx4_k = Bx4_k_1;
 
-			/*
-			y_k = angle;
-			e_k = r - y_k;
-			u_k = a1*u_k_1 + a2*u_k_2 + b0*e_k + b1*e_k_1 + b2*e_k_2;
-			control(u_k);
-			e_k_2 = e_k_1;
-			e_k_1 = e_k;
-			u_k_2 = u_k_1;
-			u_k_1 = u_k;
-			*/
 			 if (++telem_cnt >= telem_div && !uart3_busy) {
 				  int n = snprintf(telem_buf, sizeof(telem_buf),
 								   "%.3f,%.3f,%.3f\r\n",
@@ -773,14 +794,23 @@ void HAL_TIM_PeriodElapsedCallback (TIM_HandleTypeDef * htim)
 		{
 			T_esp += 1;
 		}
-		if(t <= 8){
+		if(t <= 6){//SEPARAR TIEMPOS DE ESPERA, VAR GLOBAL
 			t += 0.001;
 		}
 		else{
 			if(coor<3){
-				t = 0;
 				coor += 1;
+				t = 0;
 			}
+//			if(band_giro==1){//Raro
+//				band_giro=0;
+//				if(coor<3){
+//					coor += 1;
+//				}
+//			}
+//			else{
+//				band_giro=1;
+//			}
 		}
 	}
 }

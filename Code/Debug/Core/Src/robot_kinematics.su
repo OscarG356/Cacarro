@@ -1,5 +1,5 @@
 ../Core/Src/robot_kinematics.c:3:6:RobotKinematics_Init	24	static
 ../Core/Src/robot_kinematics.c:47:6:RobotKinematics_Update	64	static
 ../Core/Src/robot_kinematics.c:89:7:W_Control_Law	72	static
-../Core/Src/robot_kinematics.c:117:6:VL_Control_Law	64	static
-../Core/Src/robot_kinematics.c:144:6:Angular_Vel	16	static
+../Core/Src/robot_kinematics.c:119:6:VL_Control_Law	64	static
+../Core/Src/robot_kinematics.c:147:6:Angular_Vel	16	static
