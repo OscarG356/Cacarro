@@ -42,6 +42,9 @@ typedef struct {
 	float Vc_k_1, Vc_e, Vc_ek_1;
 	float Wc_k_1, Wc_e, Wc_ek_1;
 
+	//Parametros para la correccion de la odometría
+	float b_corr, Ed, Eb, DL_corr, DR_corr;
+
 } RobotKinematics;
 
 // Función de inicialización

@@ -42,6 +42,11 @@ void RobotKinematics_Init(RobotKinematics *robot, float wheel_radius, float whee
 
     robot->Vc_ek_1 = 0.0f;
     robot->Vc_k_1 = 0.0f;
+
+    //Correccion odometría(Poner los datos correctos)
+    robot->b_corr = 0.324203f;
+    robot->DL_corr = 0.094864f;
+    robot->DR_corr = 0.105136f;
 }
 
 void RobotKinematics_Update(RobotKinematics *robot, float LAngle, float RAngle, float dt)
@@ -60,19 +65,19 @@ void RobotKinematics_Update(RobotKinematics *robot, float LAngle, float RAngle, 
     robot->theta_R = RAngle;
 
     // Distancias por rueda
-    float dSL = dThetaL * robot->wheel_radius;
-    float dSR = dThetaR * robot->wheel_radius;
+    float dSL = dThetaL * robot->DL_corr;
+    float dSR = dThetaR * robot->DR_corr;
 
     float dCenter = 0.5f * (dSL + dSR);
-    float dTheta = (dSR - dSL) / robot->wheel_base;
+    float dTheta = (dSR - dSL) / robot->b_corr;
 
     // Actualización de orientación
 //    robot->theta = robot->theta_prev + dTheta;
     robot->theta = atan2(sinf(robot->theta_prev + dTheta),cosf(robot->theta_prev + dTheta));
 
     // Usar theta previa para calcular nueva posición
-    robot->x = robot->x_prev + dCenter * cosf(robot->theta_prev);
-    robot->y = robot->y_prev + dCenter * sinf(robot->theta_prev);
+    robot->x = robot->x_prev + dCenter * cosf(robot->theta_prev + 0.5*dTheta);
+    robot->y = robot->y_prev + dCenter * sinf(robot->theta_prev + 0.5*dTheta);
 
     // Velocidades
     robot->left.velocity = dSL / dt;
@@ -93,9 +98,9 @@ float W_Control_Law(RobotKinematics *robot, float Xd, float Yd){
 	float e_k = atan2(sin(e_aux), cos(e_aux));
 //	float min_e = 0.125;
 	float min_e = 0.25;
-	//float Kp = 0.499, Ki = 0.001, T = 0.001;
+	float Kp = 0.55, Ki = 0.001, T = 0.001;
 //	float Kp = 0.31, Ki = 0.005, T = 0.001;
-	float Kp = 0.31, Ki = 0.005, T = 0.001;
+//	float Kp = 0.31, Ki = 0.005, T = 0.001;
 
 	if(sqrt(pow(e_k,2)) <= min_e || robot->Vc == 0 ){
 		robot->Wc = 0;
@@ -119,11 +124,11 @@ float W_Control_Law(RobotKinematics *robot, float Xd, float Yd){
 void VL_Control_Law(RobotKinematics *robot, float Xd, float Yd){
 
 	double d = sqrt(pow((Yd-robot->y), 2) + pow((Xd-robot->x),2));
-	float min_e = 0.05;
+	float min_e = 0.06;
 	float alpha_p = 0.1;
-	//float Kp = 0.065, Ki = 0.0028, T = 0.001;
+	float Kp = 0.08, Ki = 0.002, T = 0.001;
 //	float Kp = 0.075, Ki = 0.0028, T = 0.001;
-	float Kp = 0.08, Ki = 0.0028, T = 0.001;
+//	float Kp = 0.08, Ki = 0.0028, T = 0.001;
 	//robot->Vc = alpha_p*d;
 
 	if(d <= min_e ){
