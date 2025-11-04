@@ -1,0 +1,2 @@
+../Core/Src/magnetometer_calibration.c:4:6:Magnetometer_UpdateCalibration	4
+../Core/Src/magnetometer_calibration.c:12:6:Magnetometer_ComputeOffset	2

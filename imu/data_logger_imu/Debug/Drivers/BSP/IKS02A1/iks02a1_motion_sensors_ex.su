@@ -1,0 +1,14 @@
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:58:9:IKS02A1_MOTION_SENSOR_Get_DRDY_Status	32	static
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:201:9:IKS02A1_MOTION_SENSOR_Read_Register	32	static
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:287:9:IKS02A1_MOTION_SENSOR_Write_Register	24	static
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:372:9:IKS02A1_MOTION_SENSOR_FIFO_Get_Num_Samples	24	static
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:407:9:IKS02A1_MOTION_SENSOR_FIFO_Set_BDR	32	static
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:458:9:IKS02A1_MOTION_SENSOR_FIFO_Set_INT1_FIFO_Full	24	static
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:491:9:IKS02A1_MOTION_SENSOR_FIFO_Set_Watermark_Level	24	static
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:524:9:IKS02A1_MOTION_SENSOR_FIFO_Set_Stop_On_Fth	24	static
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:557:9:IKS02A1_MOTION_SENSOR_FIFO_Set_Mode	24	static
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:590:9:IKS02A1_MOTION_SENSOR_FIFO_Get_Tag	24	static
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:625:9:IKS02A1_MOTION_SENSOR_FIFO_Get_Axes	32	static
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:676:9:IKS02A1_MOTION_SENSOR_DRDY_Set_Mode	24	static
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:711:9:IKS02A1_MOTION_SENSOR_DRDY_Enable_Interrupt	32	static
+../Drivers/BSP/IKS02A1/iks02a1_motion_sensors_ex.c:779:9:IKS02A1_MOTION_SENSOR_DRDY_Disable_Interrupt	32	static

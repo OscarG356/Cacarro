@@ -25,6 +25,7 @@
 #include "string.h"
 #include "stdio.h"
 #include "robot_kinematics.h"
+#include "ekf_dd.h"
 
 /* USER CODE END Includes */
 
@@ -159,7 +160,36 @@ int band_giro = 0;
 volatile uint8_t uart3_busy = 0;     // 0 = libre, 1 = transmitiendo
 char telem_buf[128];                 // buffer de salida
 uint16_t telem_div = 20;             // envía cada 20 ciclos (~50 Hz si control=1 kHz)
-uint16_t telem_cnt = 0;              // contador de ciclos de control
+uint16_t telem_cnt = 0;              // contador de ciclos de controlstatic EKF_DD kf;
+static const float DT = 0.01f;   // 100 Hz
+
+//FILTRO DE KALMAN
+static EKF_DD kf;
+static void KF_Init(void)
+{
+    // Estado inicial
+    float x0[5] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+
+    // Covarianza inicial P0
+    float P0[5][5] = {{0}};
+    for (int i=0;i<5;i++) P0[i][i] = (i<3) ? 1.0f : 0.25f;
+
+    // Ruido de proceso Q (discreto)
+    float Qd[5][5] = {{0}};
+    Qd[0][0]=1e-4f;   // x
+    Qd[1][1]=1e-4f;   // y
+    Qd[2][2]=5e-4f;   // theta
+    Qd[3][3]=5e-3f;   // v
+    Qd[4][4]=5e-3f;   // omega
+
+    // Ruido de medición R (diag)
+    float Rm[3][3] = {{0}};
+    Rm[0][0] = 0.05f * 0.05f;                           // sigma_x ≈ 5 cm (si tienes x abs)
+    Rm[1][1] = 0.05f * 0.05f;                           // sigma_y ≈ 5 cm (si tienes y abs)
+    Rm[2][2] = (float)powf((float)M_PI/180.0f*2.0f, 2); // sigma_theta ≈ 2°
+
+    ekf_dd_init(&kf, x0, P0, Qd, Rm);
+}
 
 RobotKinematics cacarro;
 /* USER CODE END PV */
@@ -338,6 +368,43 @@ int main(void)
 			Bx2_k = Bx2_k_1;
 			Bx3_k = Bx3_k_1;
 			Bx4_k = Bx4_k_1;
+
+			// ACTUALIZACIÓN DEL FILTRO
+			// --- Paso de PREDICCIÓN (usas tu v y ω ya calculados) ---
+			ekf_dd_predict_kin(&kf, v, omega, DT);
+
+			// --- Paso de ACTUALIZACIÓN (mediciones disponibles este ciclo) ---z = (x,y,theta)
+			float z[3] = {0.0f, 0.0f, 0.0f};
+			unsigned mask = 0;
+
+			// Yaw de IMU (recomendado siempre)
+			if (have_yaw_imu()) {
+				z[2] = get_yaw_imu_rad();     // Leer angulo y ponerlo en su posición
+				mask |= EKF_MEAS_THETA;
+			}
+
+			// Posición absoluta opcional
+			/*
+			if (have_pos_abs()) {
+				float x_abs, y_abs;
+				get_pos_abs(&x_abs, &y_abs);
+				z[0] = x_abs;  mask |= EKF_MEAS_X;
+				z[1] = y_abs;  mask |= EKF_MEAS_Y;
+			}
+			*/
+
+			// Si no hay mediciones, mask queda 0 y ekf_dd_update no hace nada
+			ekf_dd_update(&kf, z, mask);
+
+			// --- Usa el estado filtrado ---
+			float x     = kf.x[0];
+			float y     = kf.x[1];
+			float theta = kf.x[2];
+			float vhat  = kf.x[3];
+			float omhat = kf.x[4];
+
+			// (Opcional) Log
+			// printf("%f,%f,%f,%f,%f\r\n", x, y, theta, vhat, omhat);
 
 			 if (++telem_cnt >= telem_div && !uart3_busy) {
 				  int n = snprintf(telem_buf, sizeof(telem_buf),
