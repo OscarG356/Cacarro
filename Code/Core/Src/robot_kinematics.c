@@ -155,3 +155,7 @@ void Angular_Vel(RobotKinematics *robot){ // Reconsiderar el hecho de pasarlas c
 	robot-> W_L_d = ( 2*robot->Vc - robot->wheel_base*robot->Wc)/(2*robot->wheel_radius);
 	robot-> W_R_d = ( 2*robot->Vc + robot->wheel_base*robot->Wc)/(2*robot->wheel_radius);
 }
+
+void Modelo(RobotKinematics *robot){
+
+}

@@ -1,3 +1,4 @@
+"./Core/Src/ekf.o"
 "./Core/Src/kalman_filter.o"
 "./Core/Src/magnetometer_calibration.o"
 "./Core/Src/main.o"

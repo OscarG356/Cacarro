@@ -64,8 +64,8 @@ all: main-build
 main-build: data_logger_imu.elf secondary-outputs
 
 # Tool invocations
-data_logger_imu.elf data_logger_imu.map: $(OBJS) $(USER_OBJS) C:\Users\angee\Downloads\imu\data_logger_imu\STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "data_logger_imu.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\angee\Downloads\imu\data_logger_imu\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="data_logger_imu.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
+data_logger_imu.elf data_logger_imu.map: $(OBJS) $(USER_OBJS) C:\Users\angee\Downloads\Robotica\Cacarro_STM32\imu\data_logger_imu\STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "data_logger_imu.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\angee\Downloads\Robotica\Cacarro_STM32\imu\data_logger_imu\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="data_logger_imu.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

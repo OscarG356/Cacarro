@@ -59,4 +59,6 @@ void VL_Control_Law(RobotKinematics *robot, float Xd, float Yd);
 
 void Angular_Vel(RobotKinematics *robot);
 
+void Modelo(RobotKinematics *robot);
+
 #endif // ROBOT_KINEMATICS_H

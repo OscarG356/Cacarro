@@ -195,23 +195,23 @@ int main(void)
 		float roll  = KalmanFilter_Update(&kalman_roll,  accel_roll,  gyro_roll_rate);
 		float yaw = KalmanFilter_Update(&kalman_yaw, yaw_raw, gyro_yaw_rate);
 
-		if (++telem_cnt >= telem_div && !uart3_busy) {
-			  int n = snprintf(buffer, sizeof(buffer),
-						 "pitch: %.2f,roll: %.2f,yaw: %.2f\r\n",
-						 pitch, roll, yaw);
-			  if (n > 0) {
-				  uart3_busy = 1; // marcar ocupada hasta que termine
-				  HAL_UART_Transmit_IT(&huart3, (uint8_t*)telem_buf, (uint16_t)n);
-			  }
-			  telem_cnt = 0;
-		  }
+//		if (++telem_cnt >= telem_div && !uart3_busy) {
+//			  int n = snprintf(buffer, sizeof(buffer),
+//						 "pitch: %.2f,roll: %.2f,yaw: %.2f\r\n",
+//						 pitch, roll, yaw);
+//			  if (n > 0) {
+//				  uart3_busy = 1; // marcar ocupada hasta que termine
+//				  HAL_UART_Transmit_IT(&huart3, (uint8_t*)telem_buf, (uint16_t)n);
+//			  }
+//			  telem_cnt = 0;
+//		  }
 
 
 
-//		snprintf(buffer, sizeof(buffer),
-//				 "Pitch: %.2f  Roll: %.2f  Yaw(abs): %.2f\r\n",
-//				 pitch, roll, yaw);
-//		HAL_UART_Transmit(&huart2, (uint8_t*)buffer, strlen(buffer), HAL_MAX_DELAY);
+		snprintf(buffer, sizeof(buffer),
+				 "Pitch: %.2f  Roll: %.2f  Yaw(abs): %.2f\r\n",
+				 pitch, roll, yaw);
+		HAL_UART_Transmit(&huart2, (uint8_t*)buffer, strlen(buffer), HAL_MAX_DELAY);
 	}
 
 
@@ -376,12 +376,7 @@ static void MX_GPIO_Init(void)
 
   /* USER CODE END MX_GPIO_Init_2 */
 }
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-    if (huart->Instance == USART3) {
-        uart3_busy = 0; // liberar para el siguiente envío
-    }
-}
+
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
